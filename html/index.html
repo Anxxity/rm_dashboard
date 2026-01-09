@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiveM Economy Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>FiveM Economy Dashboard</h1>
+            <button class="close-btn" onclick="closeDashboard()">×</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('principal')" data-tab="principal">Principal</button>
+            <button class="tab-btn" onclick="openTab('activity')" data-tab="activity">Activity</button>
+            <button class="tab-btn" onclick="openTab('inventory')" data-tab="inventory">Inventory</button>
+            <button class="tab-btn" onclick="openTab('players')" data-tab="players">Players</button>
+            <button class="tab-btn" onclick="openTab('economy')" data-tab="economy">Economy</button>
+            <button class="tab-btn" onclick="openTab('sql')" data-tab="sql">SQL Editor</button>
+        </div>
+
+        <!-- Principal Dashboard Tab -->
+        <div id="principal-tab" class="tab-content active">
+            <div class="section-header">
+                <h2>Server Statistics</h2>
+                <button class="refresh-btn" onclick="refreshStatistics()">Refresh</button>
+            </div>
+            <div class="stats-grid" id="stats-grid">
+                <div class="loading">Loading statistics...</div>
+            </div>
+            <div class="players-table-container">
+                <div class="table-header">
+                    <h2>Players Info</h2>
+                    <div class="table-controls">
+                        <select id="entries-select" onchange="changeEntriesPerPage()">
+                            <option value="10">Show 10 entries</option>
+                            <option value="25" selected>Show 25 entries</option>
+                            <option value="50">Show 50 entries</option>
+                            <option value="100">Show 100 entries</option>
+                        </select>
+                        <input type="text" id="search-input" placeholder="Search..." onkeyup="searchTable()">
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="players-table" id="players-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0)">CIT <span class="sort-icon">⇅</span></th>
+                                <th onclick="sortTable(1)">NAME <span class="sort-icon">⇅</span></th>
+                                <th onclick="sortTable(2)">IC NAME <span class="sort-icon">⇅</span></th>
+                                <th onclick="sortTable(3)">CASH <span class="sort-icon">⇅</span></th>
+                                <th onclick="sortTable(4)">BANK <span class="sort-icon">⇅</span></th>
+                                <th onclick="sortTable(5)">JOB <span class="sort-icon">⇅</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="players-table-body">
+                            <tr><td colspan="6" class="loading">Loading players...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-pagination" id="table-pagination"></div>
+            </div>
+        </div>
+
+        <!-- Activity Dashboard Tab -->
+        <div id="activity-tab" class="tab-content">
+            <div class="section-header">
+                <h2>Daily Activity</h2>
+                <div class="activity-filters">
+                    <input type="date" id="activity-date" onchange="loadActivity()">
+                    <button class="refresh-btn" onclick="loadActivity()">Refresh</button>
+                </div>
+            </div>
+            <div class="activity-container" id="activity-container">
+                <div class="loading">Loading activity...</div>
+            </div>
+        </div>
+
+        <!-- Inventory Dashboard Tab -->
+        <div id="inventory-tab" class="tab-content">
+            <div class="section-header">
+                <h2>Player Inventory</h2>
+            </div>
+            <div class="inventory-container">
+                <div class="player-selector">
+                    <label>Search Player (Identifier/CitizenID/Name):</label>
+                    <input type="text" id="inventory-search" placeholder="Enter identifier, citizenid, or name..." onkeyup="searchPlayerInventory()">
+                    <button class="refresh-btn" onclick="searchPlayerInventory()">Search</button>
+                </div>
+                <div id="inventory-details" class="inventory-details" style="display: none;">
+                    <div class="inventory-header">
+                        <div class="player-basic-info">
+                            <h3 id="inventory-player-name">-</h3>
+                            <div class="info-badges">
+                                <span class="badge" id="inventory-citizenid">-</span>
+                                <span class="badge" id="inventory-identifier">-</span>
+                            </div>
+                        </div>
+                        <div class="player-financial-info">
+                            <div class="financial-item">
+                                <span class="label">Cash:</span>
+                                <span id="inventory-cash">$0</span>
+                            </div>
+                            <div class="financial-item">
+                                <span class="label">Bank:</span>
+                                <span id="inventory-bank">$0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inventory-sections">
+                        <div class="inventory-section">
+                            <h4>IC Information</h4>
+                            <div class="ic-info-grid" id="ic-info-grid"></div>
+                        </div>
+                        <div class="inventory-section">
+                            <h4>Job Information</h4>
+                            <div class="job-info-grid" id="job-info-grid"></div>
+                            <div class="job-edit-section" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                                <h5 style="margin-bottom: 12px; color: #71717a; font-size: 12px; text-transform: uppercase;">Edit Job</h5>
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <input type="text" id="edit-job-name" placeholder="Job Name" style="flex: 1; padding: 8px 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: #fff;">
+                                    <input type="number" id="edit-job-grade" placeholder="Grade" min="0" style="width: 100px; padding: 8px 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: #fff;">
+                                    <button onclick="changePlayerJob()" style="padding: 8px 16px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; color: #fff; border-radius: 6px; cursor: pointer; font-weight: 600;">Update Job</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="inventory-section">
+                            <h4>Inventory Items</h4>
+                            <div class="items-grid" id="items-grid"></div>
+                        </div>
+                        <div class="inventory-section">
+                            <h4>Owned Vehicles</h4>
+                            <div class="vehicles-grid" id="vehicles-grid">
+                                <div class="loading">Click "Load Vehicles" to view player vehicles</div>
+                            </div>
+                            <button onclick="loadPlayerVehicles()" class="refresh-btn" style="margin-top: 16px;">Load Vehicles</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Players Tab -->
+        <div id="players-tab" class="tab-content">
+            <div class="section-header">
+                <h2>All Players</h2>
+                <button class="refresh-btn" onclick="refreshPlayers()">Refresh</button>
+            </div>
+            <div class="players-list" id="players-list">
+                <div class="loading">Loading players...</div>
+            </div>
+        </div>
+
+        <!-- Economy Tab -->
+        <div id="economy-tab" class="tab-content">
+            <div class="section-header">
+                <h2>Economy Management</h2>
+            </div>
+            <div class="economy-container">
+                <div class="player-selector">
+                    <label>Select Player:</label>
+                    <select id="economy-player-select" onchange="loadPlayerEconomy()">
+                        <option value="">-- Select Player --</option>
+                    </select>
+                </div>
+                <div id="player-economy-details" class="economy-details" style="display: none;">
+                    <div class="economy-info">
+                        <div class="info-item">
+                            <span class="label">Name:</span>
+                            <span id="economy-name">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">ID:</span>
+                            <span id="economy-id">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Cash:</span>
+                            <span id="economy-cash">$0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Bank:</span>
+                            <span id="economy-bank">$0</span>
+                        </div>
+                    </div>
+                    <div class="economy-actions">
+                        <div class="action-group">
+                            <h3>Add Money</h3>
+                            <select id="add-money-type">
+                                <option value="cash">Cash</option>
+                                <option value="bank">Bank</option>
+                            </select>
+                            <input type="number" id="add-money-amount" placeholder="Amount" min="0">
+                            <button onclick="addPlayerMoney()">Add</button>
+                        </div>
+                        <div class="action-group">
+                            <h3>Set Money</h3>
+                            <select id="set-money-type">
+                                <option value="cash">Cash</option>
+                                <option value="bank">Bank</option>
+                            </select>
+                            <input type="number" id="set-money-amount" placeholder="Amount" min="0">
+                            <button onclick="setPlayerMoney()">Set</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SQL Editor Tab -->
+        <div id="sql-tab" class="tab-content">
+            <div class="section-header">
+                <h2>SQL Editor</h2>
+            </div>
+            <div class="sql-container">
+                <textarea id="sql-query" placeholder="Enter SQL query here..."></textarea>
+                <div class="sql-actions">
+                    <button onclick="executeSQL()">Execute</button>
+                    <button onclick="clearSQL()">Clear</button>
+                </div>
+                <div id="sql-result" class="sql-result"></div>
+            </div>
+        </div>
+
+        <!-- Notification -->
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
+
