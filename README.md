@@ -2,7 +2,7 @@
 
 A comprehensive FiveM dashboard for managing economy, viewing player details, and executing SQL queries (with safety checks). Only ACE permissioned players and admins can access this dashboard.
 
-Note: i will not be proving any update soon..... 
+**Note: i will not be proving any update soon..... **
 
 ## Features
 
