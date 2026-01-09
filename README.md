@@ -2,6 +2,8 @@
 
 A comprehensive FiveM dashboard for managing economy, viewing player details, and executing SQL queries (with safety checks). Only ACE permissioned players and admins can access this dashboard.
 
+Note: i will not be proving any update soon..... 
+
 ## Features
 
 - **Player Management**: View all online players with their details (ID, name, cash, bank, job)
@@ -34,13 +36,13 @@ Config.Database = "oxmysql"       -- "oxmysql", "mysql-async", or "ghmattimysql"
 To grant access to the dashboard, add this to your server.cfg:
 
 ```
-add_ace group.admin m_dashboard allow
+add_ace group.admin rm_dashboard allow
 ```
 
 Or for specific players:
 
 ```
-add_ace identifier.steam:YOUR_STEAM_ID m_dashboard allow
+add_ace identifier.steam:YOUR_STEAM_ID rm_dashboard allow
 ```
 
 ## Usage
